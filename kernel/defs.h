@@ -1,3 +1,8 @@
+#ifndef XV6_KERNEL_DEFS_H
+#define XV6_KERNEL_DEFS_H
+
+#include <stddef.h>
+
 struct buf;
 struct context;
 struct file;
@@ -78,7 +83,7 @@ int pipewrite(struct pipe *, uint64_t, int);
 
 // printf.c
 void            printf(char*, ...);
-void            panic(char*) __attribute__((noreturn));
+[[noreturn]] void            panic(char*);
 void            printfinit(void);
 
 // proc.c
@@ -96,7 +101,7 @@ struct cpu*     mycpu(void);
 struct cpu*     getmycpu(void);
 struct proc*    myproc();
 void            procinit(void);
-void            scheduler(void) __attribute__((noreturn));
+[[noreturn]] void            scheduler(void);
 void            sched(void);
 void            sleep(void*, struct spinlock*);
 void            userinit(void);
@@ -187,3 +192,5 @@ void            virtio_disk_intr(void);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
+
+#endif // XV6_KERNEL_DEFS_H
