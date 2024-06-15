@@ -34,14 +34,15 @@ kvmmake(void)
   kvmmap(kpgtbl, PLIC, PLIC, 0x400000, PTE_R | PTE_W);
 
   // map kernel text executable and read-only.
-  kvmmap(kpgtbl, KERNBASE, KERNBASE, (uint64)etext-KERNBASE, PTE_R | PTE_X);
+  kvmmap(kpgtbl, KERNBASE, KERNBASE, (uint64_t)etext - KERNBASE, PTE_R | PTE_X);
 
   // map kernel data and the physical RAM we'll make use of.
-  kvmmap(kpgtbl, (uint64)etext, (uint64)etext, PHYSTOP-(uint64)etext, PTE_R | PTE_W);
+  kvmmap(kpgtbl, (uint64_t)etext, (uint64_t)etext, PHYSTOP - (uint64_t)etext,
+         PTE_R | PTE_W);
 
   // map the trampoline for trap entry/exit to
   // the highest virtual address in the kernel.
-  kvmmap(kpgtbl, TRAMPOLINE, (uint64)trampoline, PGSIZE, PTE_R | PTE_X);
+  kvmmap(kpgtbl, TRAMPOLINE, (uint64_t)trampoline, PGSIZE, PTE_R | PTE_X);
 
   // allocate and map a kernel stack for each process.
   proc_mapstacks(kpgtbl);
@@ -82,9 +83,7 @@ kvminithart()
 //   21..29 -- 9 bits of level-1 index.
 //   12..20 -- 9 bits of level-0 index.
 //    0..11 -- 12 bits of byte offset within the page.
-pte_t *
-walk(pagetable_t pagetable, uint64 va, int alloc)
-{
+pte_t *walk(pagetable_t pagetable, uint64_t va, int alloc) {
   if(va >= MAXVA)
     panic("walk");
 
@@ -105,11 +104,9 @@ walk(pagetable_t pagetable, uint64 va, int alloc)
 // Look up a virtual address, return the physical address,
 // or 0 if not mapped.
 // Can only be used to look up user pages.
-uint64
-walkaddr(pagetable_t pagetable, uint64 va)
-{
+uint64_t walkaddr(pagetable_t pagetable, uint64_t va) {
   pte_t *pte;
-  uint64 pa;
+  uint64_t pa;
 
   if(va >= MAXVA)
     return 0;
@@ -128,9 +125,8 @@ walkaddr(pagetable_t pagetable, uint64 va)
 // add a mapping to the kernel page table.
 // only used when booting.
 // does not flush TLB or enable paging.
-void
-kvmmap(pagetable_t kpgtbl, uint64 va, uint64 pa, uint64 sz, int perm)
-{
+void kvmmap(pagetable_t kpgtbl, uint64_t va, uint64_t pa, uint64_t sz,
+            int perm) {
   if(mappages(kpgtbl, va, sz, pa, perm) != 0)
     panic("kvmmap");
 }
@@ -139,10 +135,9 @@ kvmmap(pagetable_t kpgtbl, uint64 va, uint64 pa, uint64 sz, int perm)
 // physical addresses starting at pa. va and size might not
 // be page-aligned. Returns 0 on success, -1 if walk() couldn't
 // allocate a needed page-table page.
-int
-mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)
-{
-  uint64 a, last;
+int mappages(pagetable_t pagetable, uint64_t va, uint64_t size, uint64_t pa,
+             int perm) {
+  uint64_t a, last;
   pte_t *pte;
 
   if(size == 0)
@@ -167,10 +162,9 @@ mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)
 // Remove npages of mappings starting from va. va must be
 // page-aligned. The mappings must exist.
 // Optionally free the physical memory.
-void
-uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
-{
-  uint64 a;
+void uvmunmap(pagetable_t pagetable, uint64_t va, uint64_t npages,
+              int do_free) {
+  uint64_t a;
   pte_t *pte;
 
   if((va % PGSIZE) != 0)
@@ -184,7 +178,7 @@ uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
     if(PTE_FLAGS(*pte) == PTE_V)
       panic("uvmunmap: not a leaf");
     if(do_free){
-      uint64 pa = PTE2PA(*pte);
+      uint64_t pa = PTE2PA(*pte);
       kfree((void*)pa);
     }
     *pte = 0;
@@ -207,26 +201,23 @@ uvmcreate()
 // Load the user initcode into address 0 of pagetable,
 // for the very first process.
 // sz must be less than a page.
-void
-uvmfirst(pagetable_t pagetable, uchar *src, uint sz)
-{
+void uvmfirst(pagetable_t pagetable, uchar_t *src, uint_t sz) {
   char *mem;
 
   if(sz >= PGSIZE)
     panic("uvmfirst: more than a page");
   mem = kalloc();
   memset(mem, 0, PGSIZE);
-  mappages(pagetable, 0, PGSIZE, (uint64)mem, PTE_W|PTE_R|PTE_X|PTE_U);
+  mappages(pagetable, 0, PGSIZE, (uint64_t)mem, PTE_W | PTE_R | PTE_X | PTE_U);
   memmove(mem, src, sz);
 }
 
 // Allocate PTEs and physical memory to grow process from oldsz to
 // newsz, which need not be page aligned.  Returns new size or 0 on error.
-uint64
-uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm)
-{
+uint64_t uvmalloc(pagetable_t pagetable, uint64_t oldsz, uint64_t newsz,
+                  int xperm) {
   char *mem;
-  uint64 a;
+  uint64_t a;
 
   if(newsz < oldsz)
     return oldsz;
@@ -239,7 +230,8 @@ uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm)
       return 0;
     }
     memset(mem, 0, PGSIZE);
-    if(mappages(pagetable, a, PGSIZE, (uint64)mem, PTE_R|PTE_U|xperm) != 0){
+    if (mappages(pagetable, a, PGSIZE, (uint64_t)mem, PTE_R | PTE_U | xperm) !=
+        0) {
       kfree(mem);
       uvmdealloc(pagetable, a, oldsz);
       return 0;
@@ -252,9 +244,7 @@ uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm)
 // newsz.  oldsz and newsz need not be page-aligned, nor does newsz
 // need to be less than oldsz.  oldsz can be larger than the actual
 // process size.  Returns the new process size.
-uint64
-uvmdealloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz)
-{
+uint64_t uvmdealloc(pagetable_t pagetable, uint64_t oldsz, uint64_t newsz) {
   if(newsz >= oldsz)
     return oldsz;
 
@@ -276,7 +266,7 @@ freewalk(pagetable_t pagetable)
     pte_t pte = pagetable[i];
     if((pte & PTE_V) && (pte & (PTE_R|PTE_W|PTE_X)) == 0){
       // this PTE points to a lower-level page table.
-      uint64 child = PTE2PA(pte);
+      uint64_t child = PTE2PA(pte);
       freewalk((pagetable_t)child);
       pagetable[i] = 0;
     } else if(pte & PTE_V){
@@ -288,9 +278,7 @@ freewalk(pagetable_t pagetable)
 
 // Free user memory pages,
 // then free page-table pages.
-void
-uvmfree(pagetable_t pagetable, uint64 sz)
-{
+void uvmfree(pagetable_t pagetable, uint64_t sz) {
   if(sz > 0)
     uvmunmap(pagetable, 0, PGROUNDUP(sz)/PGSIZE, 1);
   freewalk(pagetable);
@@ -302,12 +290,10 @@ uvmfree(pagetable_t pagetable, uint64 sz)
 // physical memory.
 // returns 0 on success, -1 on failure.
 // frees any allocated pages on failure.
-int
-uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
-{
+int uvmcopy(pagetable_t old, pagetable_t new, uint64_t sz) {
   pte_t *pte;
-  uint64 pa, i;
-  uint flags;
+  uint64_t pa, i;
+  uint_t flags;
   char *mem;
 
   for(i = 0; i < sz; i += PGSIZE){
@@ -320,7 +306,7 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
     if((mem = kalloc()) == 0)
       goto err;
     memmove(mem, (char*)pa, PGSIZE);
-    if(mappages(new, i, PGSIZE, (uint64)mem, flags) != 0){
+    if (mappages(new, i, PGSIZE, (uint64_t)mem, flags) != 0) {
       kfree(mem);
       goto err;
     }
@@ -330,110 +316,102 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
  err:
   uvmunmap(new, 0, i / PGSIZE, 1);
   return -1;
-}
+ }
 
 // mark a PTE invalid for user access.
 // used by exec for the user stack guard page.
-void
-uvmclear(pagetable_t pagetable, uint64 va)
-{
-  pte_t *pte;
-  
-  pte = walk(pagetable, va, 0);
-  if(pte == 0)
-    panic("uvmclear");
-  *pte &= ~PTE_U;
-}
+ void uvmclear(pagetable_t pagetable, uint64_t va) {
+   pte_t *pte;
+
+   pte = walk(pagetable, va, 0);
+   if (pte == 0)
+     panic("uvmclear");
+   *pte &= ~PTE_U;
+ }
 
 // Copy from kernel to user.
 // Copy len bytes from src to virtual address dstva in a given page table.
 // Return 0 on success, -1 on error.
-int
-copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
-{
-  uint64 n, va0, pa0;
+ int copyout(pagetable_t pagetable, uint64_t dstva, char *src, uint64_t len) {
+   uint64_t n, va0, pa0;
 
-  while(len > 0){
-    va0 = PGROUNDDOWN(dstva);
-    pa0 = walkaddr(pagetable, va0);
-    if(pa0 == 0)
-      return -1;
-    n = PGSIZE - (dstva - va0);
-    if(n > len)
-      n = len;
-    memmove((void *)(pa0 + (dstva - va0)), src, n);
+   while (len > 0) {
+     va0 = PGROUNDDOWN(dstva);
+     pa0 = walkaddr(pagetable, va0);
+     if (pa0 == 0)
+       return -1;
+     n = PGSIZE - (dstva - va0);
+     if (n > len)
+       n = len;
+     memmove((void *)(pa0 + (dstva - va0)), src, n);
 
-    len -= n;
-    src += n;
-    dstva = va0 + PGSIZE;
-  }
-  return 0;
-}
+     len -= n;
+     src += n;
+     dstva = va0 + PGSIZE;
+   }
+   return 0;
+ }
 
 // Copy from user to kernel.
 // Copy len bytes to dst from virtual address srcva in a given page table.
 // Return 0 on success, -1 on error.
-int
-copyin(pagetable_t pagetable, char *dst, uint64 srcva, uint64 len)
-{
-  uint64 n, va0, pa0;
+ int copyin(pagetable_t pagetable, char *dst, uint64_t srcva, uint64_t len) {
+   uint64_t n, va0, pa0;
 
-  while(len > 0){
-    va0 = PGROUNDDOWN(srcva);
-    pa0 = walkaddr(pagetable, va0);
-    if(pa0 == 0)
-      return -1;
-    n = PGSIZE - (srcva - va0);
-    if(n > len)
-      n = len;
-    memmove(dst, (void *)(pa0 + (srcva - va0)), n);
+   while (len > 0) {
+     va0 = PGROUNDDOWN(srcva);
+     pa0 = walkaddr(pagetable, va0);
+     if (pa0 == 0)
+       return -1;
+     n = PGSIZE - (srcva - va0);
+     if (n > len)
+       n = len;
+     memmove(dst, (void *)(pa0 + (srcva - va0)), n);
 
-    len -= n;
-    dst += n;
-    srcva = va0 + PGSIZE;
-  }
-  return 0;
-}
+     len -= n;
+     dst += n;
+     srcva = va0 + PGSIZE;
+   }
+   return 0;
+ }
 
 // Copy a null-terminated string from user to kernel.
 // Copy bytes to dst from virtual address srcva in a given page table,
 // until a '\0', or max.
 // Return 0 on success, -1 on error.
-int
-copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
-{
-  uint64 n, va0, pa0;
-  int got_null = 0;
+ int copyinstr(pagetable_t pagetable, char *dst, uint64_t srcva, uint64_t max) {
+   uint64_t n, va0, pa0;
+   int got_null = 0;
 
-  while(got_null == 0 && max > 0){
-    va0 = PGROUNDDOWN(srcva);
-    pa0 = walkaddr(pagetable, va0);
-    if(pa0 == 0)
-      return -1;
-    n = PGSIZE - (srcva - va0);
-    if(n > max)
-      n = max;
+   while (got_null == 0 && max > 0) {
+     va0 = PGROUNDDOWN(srcva);
+     pa0 = walkaddr(pagetable, va0);
+     if (pa0 == 0)
+       return -1;
+     n = PGSIZE - (srcva - va0);
+     if (n > max)
+       n = max;
 
-    char *p = (char *) (pa0 + (srcva - va0));
-    while(n > 0){
-      if(*p == '\0'){
-        *dst = '\0';
-        got_null = 1;
-        break;
-      } else {
-        *dst = *p;
-      }
-      --n;
-      --max;
-      p++;
-      dst++;
-    }
+     char *p = (char *)(pa0 + (srcva - va0));
+     while (n > 0) {
+       if (*p == '\0') {
+         *dst = '\0';
+         got_null = 1;
+         break;
+       } else {
+         *dst = *p;
+       }
+       --n;
+       --max;
+       p++;
+       dst++;
+     }
 
-    srcva = va0 + PGSIZE;
-  }
-  if(got_null){
-    return 0;
-  } else {
-    return -1;
-  }
-}
+     srcva = va0 + PGSIZE;
+   }
+   if (got_null) {
+     return 0;
+   } else {
+     return -1;
+   }
+ }

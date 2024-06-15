@@ -38,8 +38,8 @@ proc_mapstacks(pagetable_t kpgtbl)
     char *pa = kalloc();
     if(pa == 0)
       panic("kalloc");
-    uint64 va = KSTACK((int) (p - proc));
-    kvmmap(kpgtbl, va, (uint64)pa, PGSIZE, PTE_R | PTE_W);
+    uint64_t va = KSTACK((int)(p - proc));
+    kvmmap(kpgtbl, va, (uint64_t)pa, PGSIZE, PTE_R | PTE_W);
   }
 }
 
@@ -143,7 +143,7 @@ found:
   // Set up new context to start executing at forkret,
   // which returns to user space.
   memset(&p->context, 0, sizeof(p->context));
-  p->context.ra = (uint64)forkret;
+  p->context.ra = (uint64_t)forkret;
   p->context.sp = p->kstack + PGSIZE;
 
   return p;
@@ -187,16 +187,16 @@ proc_pagetable(struct proc *p)
   // at the highest user virtual address.
   // only the supervisor uses it, on the way
   // to/from user space, so not PTE_U.
-  if(mappages(pagetable, TRAMPOLINE, PGSIZE,
-              (uint64)trampoline, PTE_R | PTE_X) < 0){
+  if (mappages(pagetable, TRAMPOLINE, PGSIZE, (uint64_t)trampoline,
+               PTE_R | PTE_X) < 0) {
     uvmfree(pagetable, 0);
     return 0;
   }
 
   // map the trapframe page just below the trampoline page, for
   // trampoline.S.
-  if(mappages(pagetable, TRAPFRAME, PGSIZE,
-              (uint64)(p->trapframe), PTE_R | PTE_W) < 0){
+  if (mappages(pagetable, TRAPFRAME, PGSIZE, (uint64_t)(p->trapframe),
+               PTE_R | PTE_W) < 0) {
     uvmunmap(pagetable, TRAMPOLINE, 1, 0);
     uvmfree(pagetable, 0);
     return 0;
@@ -207,9 +207,7 @@ proc_pagetable(struct proc *p)
 
 // Free a process's page table, and free the
 // physical memory it refers to.
-void
-proc_freepagetable(pagetable_t pagetable, uint64 sz)
-{
+void proc_freepagetable(pagetable_t pagetable, uint64_t sz) {
   uvmunmap(pagetable, TRAMPOLINE, 1, 0);
   uvmunmap(pagetable, TRAPFRAME, 1, 0);
   uvmfree(pagetable, sz);
@@ -218,15 +216,12 @@ proc_freepagetable(pagetable_t pagetable, uint64 sz)
 // a user program that calls exec("/init")
 // assembled from ../user/initcode.S
 // od -t xC ../user/initcode
-uchar initcode[] = {
-  0x17, 0x05, 0x00, 0x00, 0x13, 0x05, 0x45, 0x02,
-  0x97, 0x05, 0x00, 0x00, 0x93, 0x85, 0x35, 0x02,
-  0x93, 0x08, 0x70, 0x00, 0x73, 0x00, 0x00, 0x00,
-  0x93, 0x08, 0x20, 0x00, 0x73, 0x00, 0x00, 0x00,
-  0xef, 0xf0, 0x9f, 0xff, 0x2f, 0x69, 0x6e, 0x69,
-  0x74, 0x00, 0x00, 0x24, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00
-};
+uchar_t initcode[] = {0x17, 0x05, 0x00, 0x00, 0x13, 0x05, 0x45, 0x02, 0x97,
+                      0x05, 0x00, 0x00, 0x93, 0x85, 0x35, 0x02, 0x93, 0x08,
+                      0x70, 0x00, 0x73, 0x00, 0x00, 0x00, 0x93, 0x08, 0x20,
+                      0x00, 0x73, 0x00, 0x00, 0x00, 0xef, 0xf0, 0x9f, 0xff,
+                      0x2f, 0x69, 0x6e, 0x69, 0x74, 0x00, 0x00, 0x24, 0x00,
+                      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 // Set up first user process.
 void
@@ -259,7 +254,7 @@ userinit(void)
 int
 growproc(int n)
 {
-  uint64 sz;
+  uint64_t sz;
   struct proc *p = myproc();
 
   sz = p->sz;
@@ -387,9 +382,7 @@ exit(int status)
 
 // Wait for a child process to exit and return its pid.
 // Return -1 if this process has no children.
-int
-wait(uint64 addr)
-{
+int wait(uint64_t addr) {
   struct proc *pp;
   int havekids, pid;
   struct proc *p = myproc();
@@ -625,9 +618,7 @@ killed(struct proc *p)
 // Copy to either a user address, or kernel address,
 // depending on usr_dst.
 // Returns 0 on success, -1 on error.
-int
-either_copyout(int user_dst, uint64 dst, void *src, uint64 len)
-{
+int either_copyout(int user_dst, uint64_t dst, void *src, uint64_t len) {
   struct proc *p = myproc();
   if(user_dst){
     return copyout(p->pagetable, dst, src, len);
@@ -640,9 +631,7 @@ either_copyout(int user_dst, uint64 dst, void *src, uint64 len)
 // Copy from either a user address, or kernel address,
 // depending on usr_src.
 // Returns 0 on success, -1 on error.
-int
-either_copyin(void *dst, int user_src, uint64 src, uint64 len)
-{
+int either_copyin(void *dst, int user_src, uint64_t src, uint64_t len) {
   struct proc *p = myproc();
   if(user_src){
     return copyin(p->pagetable, dst, src, len);

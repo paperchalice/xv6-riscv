@@ -11,7 +11,7 @@ typedef long Align;
 union header {
   struct {
     union header *ptr;
-    uint size;
+    uint_t size;
   } s;
   Align x;
 };
@@ -43,9 +43,7 @@ free(void *ap)
   freep = p;
 }
 
-static Header*
-morecore(uint nu)
-{
+static Header *morecore(uint_t nu) {
   char *p;
   Header *hp;
 
@@ -60,11 +58,9 @@ morecore(uint nu)
   return freep;
 }
 
-void*
-malloc(uint nbytes)
-{
+void *malloc(uint_t nbytes) {
   Header *p, *prevp;
-  uint nunits;
+  uint_t nunits;
 
   nunits = (nbytes + sizeof(Header) - 1)/sizeof(Header) + 1;
   if((prevp = freep) == 0){
