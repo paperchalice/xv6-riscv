@@ -1,4 +1,7 @@
 // Saved registers for kernel context switches.
+
+#ifndef XV6_KERNEL_PROC_H
+#define XV6_KERNEL_PROC_H
 struct context {
   uint64_t ra;
   uint64_t sp;
@@ -105,3 +108,5 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
 };
+
+#endif // XV6_KERNEL_PROC_H
