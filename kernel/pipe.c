@@ -24,8 +24,8 @@ pipealloc(struct file **f0, struct file **f1)
 {
   struct pipe *pi;
 
-  pi = 0;
-  *f0 = *f1 = 0;
+  pi = nullptr;
+  *f0 = *f1 = nullptr;
   if((*f0 = filealloc()) == 0 || (*f1 = filealloc()) == 0)
     goto bad;
   if((pi = (struct pipe*)kalloc()) == 0)

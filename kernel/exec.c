@@ -70,7 +70,7 @@ exec(char *path, char **argv)
   }
   iunlockput(ip);
   end_op();
-  ip = 0;
+  ip = nullptr;
 
   p = myproc();
   uint64_t oldsz = p->sz;

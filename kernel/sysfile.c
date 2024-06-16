@@ -462,7 +462,7 @@ uint64_t sys_exec(void) {
    fd0 = -1;
    if ((fd0 = fdalloc(rf)) < 0 || (fd1 = fdalloc(wf)) < 0) {
      if (fd0 >= 0)
-       p->ofile[fd0] = 0;
+       p->ofile[fd0] = nullptr;
      fileclose(rf);
      fileclose(wf);
      return -1;
@@ -470,8 +470,8 @@ uint64_t sys_exec(void) {
    if (copyout(p->pagetable, fdarray, (char *)&fd0, sizeof(fd0)) < 0 ||
        copyout(p->pagetable, fdarray + sizeof(fd0), (char *)&fd1, sizeof(fd1)) <
            0) {
-     p->ofile[fd0] = 0;
-     p->ofile[fd1] = 0;
+     p->ofile[fd0] = nullptr;
+     p->ofile[fd1] = nullptr;
      fileclose(rf);
      fileclose(wf);
      return -1;

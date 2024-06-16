@@ -157,15 +157,15 @@ freeproc(struct proc *p)
 {
   if(p->trapframe)
     kfree((void*)p->trapframe);
-  p->trapframe = 0;
+  p->trapframe = nullptr;
   if(p->pagetable)
     proc_freepagetable(p->pagetable, p->sz);
-  p->pagetable = 0;
+  p->pagetable = nullptr;
   p->sz = 0;
   p->pid = 0;
-  p->parent = 0;
+  p->parent = nullptr;
   p->name[0] = 0;
-  p->chan = 0;
+  p->chan = nullptr;
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
