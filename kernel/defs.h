@@ -1,8 +1,6 @@
 #ifndef XV6_KERNEL_DEFS_H
 #define XV6_KERNEL_DEFS_H
 
-#include <stddef.h>
-
 struct buf;
 struct context;
 struct file;
