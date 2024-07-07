@@ -26,5 +26,6 @@ SYSCALL(, link, int, (const char *path1, const char *path2))
 SYSCALL(, mkdir, int, (const char *path))
 SYSCALL(, close, int, (int fildes))
 SYSCALL(, trace, int, (int mask))
+SYSCALL(, sysinfo, int, (struct sysinfo *info))
 
 #undef SYSCALL
