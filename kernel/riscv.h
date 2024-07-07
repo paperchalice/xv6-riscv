@@ -203,6 +203,13 @@ static inline uint64_t r_time() {
   return x;
 }
 
+// frame pointer
+static inline uint64_t r_fp() {
+  uint64_t x;
+  asm volatile("mv %0, s0" : "=r"(x));
+  return x;
+}
+
 // enable device interrupts
 static inline void
 intr_on()

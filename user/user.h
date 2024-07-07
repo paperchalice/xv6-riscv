@@ -1,5 +1,6 @@
 #include "sys/types.h"
 struct stat;
+struct sysinfo;
 
 // system calls
 
