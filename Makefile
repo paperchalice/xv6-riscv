@@ -94,11 +94,8 @@ _%: %.o $(ULIB)
 	$(OBJDUMP) -S $@ > $*.asm
 	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
 
-$U/usys.S : $U/usys.pl
-	perl $U/usys.pl > $U/usys.S
-
-$U/usys.o : $U/usys.S
-	$(CC) $(CFLAGS) -c -o $U/usys.o $U/usys.S
+$U/usys.o : $U/usys.c
+	$(CC) $(CFLAGS) -c -o $U/usys.o $U/usys.c
 
 $U/_forktest: $U/forktest.o $(ULIB)
 	# forktest has less library code linked in - needs to be small
@@ -143,7 +140,7 @@ clean:
 	*/*.o */*.d */*.asm */*.sym \
 	$U/initcode $U/initcode.out $K/kernel fs.img \
 	mkfs/mkfs .gdbinit \
-        $U/usys.S \
+        $U/usys.c \
 	$(UPROGS)
 
 # try to generate a unique GDB port

@@ -1,0 +1,29 @@
+#ifndef SYSCALL
+#define SYSCALL(ATTR, NAME, RET, ARGS)
+#endif
+
+SYSCALL(, fork, pid_t, ())
+SYSCALL([[noreturn]], exit, void, (int))
+SYSCALL(, wait, pid_t, (int *stat_loc))
+SYSCALL(, pipe, int, (int fildes[static 2]))
+SYSCALL(, read, ssize_t, (int fildes, void *buf, size_t nbyte))
+// SYSCALL(, kill, int, (pid_t pid, int sig))
+SYSCALL(, kill, int, (pid_t pid))
+SYSCALL(, exec, int, (const char*, char**))
+SYSCALL(, fstat, int, (int fildes, struct stat *buf))
+SYSCALL(, chdir, int, (const char *path))
+SYSCALL(, dup, int, (int fildes))
+SYSCALL(, getpid, pid_t, ())
+SYSCALL(, sbrk, char *, (int))
+SYSCALL(, sleep, unsigned, (unsigned seconds))
+SYSCALL(, uptime, int, ())
+SYSCALL(, open, int, (const char *path, int oflag, ...))
+SYSCALL(, write, ssize_t, (int fildes, const void *buf, size_t nbyte))
+SYSCALL(, mknod, int, (const char *path, mode_t mode, dev_t dev))
+SYSCALL(, unlink, int, (const char *path))
+SYSCALL(, link, int, (const char *path1, const char *path2))
+// SYSCALL(, mkdir, int, (const char *path, mode_t mode))
+SYSCALL(, mkdir, int, (const char *path))
+SYSCALL(, close, int, (int fildes))
+
+#undef SYSCALL
